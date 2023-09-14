@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: discovery
+
+server:
+  port: ${PORT:8761}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

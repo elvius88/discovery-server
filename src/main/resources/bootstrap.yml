@@ -1,0 +1,61 @@
+
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    serviceUrl:
+          defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  instance:
+    hostname: localhost # ya que por ahora va a ser standalone
+    lease-expiration-duration-in-seconds: 70 # si pasa mas de 70 segundos desde la ultima pulsacion de un client se lo da de baja
+  server:
+    enable-self-preservation: false
+    renewal-percent-threshold: 0.49 #solo en desa https://stackoverflow.com/a/41217806/3071654
+    wait-time-in-ms-when-sync-empty: 0
+    number-of-replication-retries: 5 #When the eureka server starts up it tries to fetch all the registry information from the peer eureka nodes. This operation is retried 5 times for each peer
+
+    #response-cache-update-interval-ms: esto dice en cunato timepo se va a  actualizar el cache de los registrados.
+
+
+#Para hacerlo funcionar con varias instancias, se pueded declarar varios profiles,
+# y luego se los levantan con esos profiles, el peer1 se registra en el 2 y viseversa
+---
+spring:
+  profiles: peer1
+
+server:
+  port: ${PORT:8761}
+
+eureka:
+  instance:
+    hostname: peer1 #modify /etc/hosts
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://peer2:${PORT_PEER2:8762}/eureka/
+  server:
+    enable-self-preservation: false
+    renewal-percent-threshold: 0.8
+    peer-node-read-timeout-ms: 2000
+
+---
+spring:
+  profiles: peer2
+
+server:
+  port: ${PORT:8761}
+
+eureka:
+  instance:
+    hostname: peer2
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    serviceUrl:
+      defaultZone: http://peer1:${PORT_PEER1:8761}/eureka/
+  server:
+    enable-self-preservation: false
+    renewal-percent-threshold: 0.8
+    peer-node-read-timeout-ms: 2000
+---
